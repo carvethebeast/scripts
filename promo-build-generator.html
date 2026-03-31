@@ -284,6 +284,8 @@
           <option>Meat/Sea</option>
           <option>Produce</option>
           <option>Deli</option>
+          <option>Supplements</option>
+          <option>Body Care</option>
         </select>
       </div>
 
@@ -294,12 +296,23 @@
 
       <div class="field">
         <label>Deal description</label>
-        <input type="text" id="deal" placeholder="e.g. 15% off BWS with coupon present.">
+        <select id="deal">
+          <option>$5 off $15 Produce with coupon present</option>
+          <option>$5 off $25 Body Care with coupon present</option>
+          <option>$5 off $25 Deli with coupon present</option>
+          <option>$5 off $25 Supplements with coupon present</option>
+          <option>$10 off $50 Shop with coupon present</option>
+          <option>$5 off $25 Meat/Sea with coupon present</option>
+        </select>
       </div>
 
       <div class="field">
         <label>Transaction limits</label>
-        <textarea id="txLimits" rows="2" placeholder="e.g. Limit one coupon per transaction. Does not combine with other offers. Staff discount does not stack."></textarea>
+        <select id="txLimits">
+          <option>Limit one coupon per transaction. Does not combine with other offers. Staff discount does not stack.</option>
+          <option>No transaction limit.</option>
+          <option>Other</option>
+        </select>
       </div>
 
       <div class="field">
@@ -317,12 +330,12 @@
       <div class="field">
         <label>Promo code / identifier</label>
         <input type="text" id="promoCode" placeholder="e.g. DM7">
-        <span class="naming-hint" id="namingHint">Fill in dates, code & deal to auto-generate</span>
       </div>
 
       <div class="field">
         <label>Naming (auto-generated — editable)</label>
         <input type="text" id="naming" placeholder="Will auto-fill...">
+        <span class="naming-hint" id="namingHint">Fill in dates, deal & dept to auto-generate</span>
       </div>
 
       <button class="reset-btn" onclick="resetForm()">Clear all fields</button>
@@ -358,15 +371,16 @@
     return fmtDate(s) + '-' + fmtDate(e);
   }
 
-  function autoNaming() {
-    const dates = dateRange();
-    const code = document.getElementById('promoCode').value.trim();
-    const deal = document.getElementById('deal').value.trim();
-    const dept = document.getElementById('dept').value.trim();
-    if (!dates && !code && !deal) return '';
-    const parts = [dates, code, (deal || dept)].filter(Boolean);
-    return parts.join(' ') + ' + N/A';
-  }
+ function autoNaming() {
+  const dates = dateRange();
+  const code = document.getElementById('promoCode').value.trim();
+  const deal = document.getElementById('deal').value.trim();
+
+  if (!dates && !code && !deal) return '';
+
+  const parts = [dates, code, deal].filter(Boolean);
+  return parts.join(' ');
+}
 
   document.getElementById('naming').addEventListener('input', () => { namingEdited = true; });
 
@@ -375,7 +389,7 @@
   function update() {
     const auto = autoNaming();
     if (!namingEdited && auto) document.getElementById('naming').value = auto;
-    document.getElementById('namingHint').textContent = auto ? 'Auto: ' + auto : 'Fill in dates, code & deal to auto-generate';
+    document.getElementById('namingHint').textContent = auto ? 'Auto: ' + auto : 'Fill in dates, deal & dept to auto-generate';
 
     const dates = dateRange();
     const rows = [
@@ -420,11 +434,10 @@
   }
 
   function resetForm() {
-    document.getElementById('promoType').selectedIndex = 0;
-    document.getElementById('buildType').selectedIndex = 0;
-    document.getElementById('stores').selectedIndex = 0;
-    document.getElementById('budget').selectedIndex = 0;
-    ['dateStart','dateEnd','dept','coupon','deal','txLimits','promoCode','naming'].forEach(id => {
+    ['promoType','buildType','stores','dept','deal','txLimits','budget'].forEach(id => {
+      document.getElementById(id).selectedIndex = 0;
+    });
+    ['dateStart','dateEnd','coupon','promoCode','naming'].forEach(id => {
       document.getElementById(id).value = '';
     });
     namingEdited = false;
