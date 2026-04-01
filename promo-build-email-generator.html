@@ -136,6 +136,32 @@
     margin-top: 2px;
   }
 
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 5px;
+  }
+
+  .checkbox-row input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    padding: 0;
+    border: 0.5px solid var(--border2);
+    border-radius: 3px;
+    background: var(--bg2);
+    cursor: pointer;
+    accent-color: var(--green);
+  }
+
+  .checkbox-row label {
+    font-size: 11px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+
   .preview-header {
     display: flex;
     align-items: center;
@@ -298,11 +324,15 @@
       <div class="field">
         <label>Deal description</label>
         <select id="deal">
-          <option>$15 off $75</option>
+          <option>$15 off $75</option>
           <option>$10 off $50</option>
           <option>$5 off $15</option>
           <option>$5 off $25</option>
         </select>
+        <div class="checkbox-row">
+          <input type="checkbox" id="couponPresent" checked>
+          <label for="couponPresent">with coupon present</label>
+        </div>
       </div>
 
       <div class="field">
@@ -355,15 +385,6 @@
   const ids = ['promoType','buildType','stores','dateStart','dateEnd','dept','coupon','deal','txLimits','budget','promoCode','naming'];
   let namingEdited = false;
 
-  const dealShortLabels = {
-    '$5 off $15 Produce with coupon present':     '$5 off Produce',
-    '$5 off $25 Body Care with coupon present':   '$5 off Body Care',
-    '$5 off $25 Deli with coupon present':        '$5 off Deli',
-    '$5 off $25 Supplements with coupon present': '$5 off Supplements',
-    '$10 off $50 Shop with coupon present':       '$10 off Shop',
-    '$5 off $25 Meat/Sea with coupon present':    '$5 off Meat/Sea',
-  };
-
   function fmtDate(d) {
     if (!d) return '';
     const [y, m, day] = d.split('-');
@@ -379,19 +400,28 @@
     return fmtDate(s) + '-' + fmtDate(e);
   }
 
+  // Returns deal text, appending "with coupon present" only if checkbox is checked
+  function dealText() {
+    const deal = document.getElementById('deal').value.trim();
+    const withCoupon = document.getElementById('couponPresent').checked;
+    return withCoupon ? deal + ' with coupon present' : deal;
+  }
+
   function autoNaming() {
     const dates = dateRange();
     const code = document.getElementById('promoCode').value.trim();
     const deal = document.getElementById('deal').value.trim();
-    const shortDeal = dealShortLabels[deal] || deal;
+    const dept = document.getElementById('dept').value.trim();
+
 
     if (!dates && !code && !deal) return '';
 
-    const parts = [dates, code, shortDeal].filter(Boolean);
+    const parts = [dates, code, deal, dept].filter(Boolean);
     return parts.join(' ');
   }
 
   document.getElementById('naming').addEventListener('input', () => { namingEdited = true; });
+  document.getElementById('couponPresent').addEventListener('change', update);
 
   function v(id) { return document.getElementById(id).value.trim(); }
 
@@ -408,7 +438,7 @@
       ['DATES', dates],
       ['DEPARTMENT', v('dept')],
       ['COUPON', v('coupon')],
-      ['DEAL', v('deal')],
+      ['DEAL', dealText()],
       ['TRANSACTION LIMITS', v('txLimits')],
       ['BUDGET TO CHARGE TO', v('budget')],
       ['NAMING', 'Please name the Promo Basket Analysis tool "' + v('naming') + '"'],
@@ -428,7 +458,7 @@
       'DATES: ' + dates,
       'DEPARTMENT: ' + v('dept'),
       'COUPON: ' + v('coupon'),
-      'DEAL: ' + v('deal'),
+      'DEAL: ' + dealText(),
       'TRANSACTION LIMITS: ' + v('txLimits'),
       'BUDGET TO CHARGE TO: ' + v('budget'),
       'NAMING: Please name the Promo Basket Analysis tool "' + v('naming') + '"',
@@ -449,6 +479,7 @@
     ['dateStart','dateEnd','coupon','promoCode','naming'].forEach(id => {
       document.getElementById(id).value = '';
     });
+    document.getElementById('couponPresent').checked = true;
     namingEdited = false;
     update();
   }
