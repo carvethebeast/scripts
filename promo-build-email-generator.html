@@ -337,11 +337,24 @@
 
       <div class="field">
         <label>Transaction limits</label>
-        <select id="txLimits">
-          <option>Limit one coupon per transaction. Does not combine with other offers. Staff discount does not stack.</option>
-          <option>No transaction limit.</option>
-          <option>Other</option>
-        </select>
+        <div class="checkbox-row"><input type="checkbox" id="tx1" checked><label for="tx1">Limit one per transaction.</label></div>
+        <div class="checkbox-row"><input type="checkbox" id="tx2" checked><label for="tx2">Does not combine with other offers.</label></div>
+        <div class="checkbox-row"><input type="checkbox" id="tx3"><label for="tx3">Staff accounts not eligible.</label></div>
+        <div class="checkbox-row"><input type="checkbox" id="tx4"><label for="tx4">Staff discount does not stack.</label></div>
+        <div class="checkbox-row"><input type="checkbox" id="tx5"><label for="tx5">Excludes alcohol, gift cards, stamps, cooking classes &amp; membership dues.</label></div>
+        <div class="checkbox-row" style="margin-top:4px;flex-wrap:wrap;gap:5px;">
+          <input type="checkbox" id="tx6">
+          <label for="tx6">Total must equal</label>
+          <select id="txTotal" style="width:auto;padding:3px 6px;font-size:11px;display:inline-block;">
+            <option>$15</option>
+            <option>$20</option>
+            <option>$25</option>
+            <option>$30</option>
+            <option>$50</option>
+            <option>$75</option>
+          </select>
+          <label for="tx6">before tax.</label>
+        </div>
       </div>
 
       <div class="field">
@@ -382,7 +395,7 @@
 </div>
 
 <script>
-  const ids = ['promoType','buildType','stores','dateStart','dateEnd','dept','coupon','deal','txLimits','budget','promoCode','naming'];
+  const ids = ['promoType','buildType','stores','dateStart','dateEnd','dept','coupon','deal','budget','promoCode','naming'];
   let namingEdited = false;
 
   function fmtDate(d) {
@@ -413,15 +426,34 @@
     const deal = document.getElementById('deal').value.trim();
     const dept = document.getElementById('dept').value.trim();
 
-
     if (!dates && !code && !deal) return '';
 
     const parts = [dates, code, deal, dept].filter(Boolean);
     return parts.join(' ');
   }
 
+  // Builds transaction limits string from checked boxes
+  function txText() {
+    const options = [
+      { id: 'tx1', text: 'Limit one per transaction.' },
+      { id: 'tx2', text: 'Does not combine with other offers.' },
+      { id: 'tx3', text: 'Staff accounts not eligible.' },
+      { id: 'tx4', text: 'Staff discount does not stack.' },
+      { id: 'tx5', text: 'Excludes alcohol, gift cards, stamps, cooking classes & membership dues.' },
+    ];
+    const parts = options
+      .filter(o => document.getElementById(o.id).checked)
+      .map(o => o.text);
+    if (document.getElementById('tx6').checked) {
+      const amt = document.getElementById('txTotal').value;
+      parts.push('Total must equal ' + amt + ' before tax.');
+    }
+    return parts.join(' ');
+  }
+
   document.getElementById('naming').addEventListener('input', () => { namingEdited = true; });
   document.getElementById('couponPresent').addEventListener('change', update);
+  ['tx1','tx2','tx3','tx4','tx5','tx6','txTotal'].forEach(id => document.getElementById(id).addEventListener('change', update));
 
   function v(id) { return document.getElementById(id).value.trim(); }
 
@@ -439,7 +471,7 @@
       ['DEPARTMENT', v('dept')],
       ['COUPON', v('coupon')],
       ['DEAL', dealText()],
-      ['TRANSACTION LIMITS', v('txLimits')],
+      ['TRANSACTION LIMITS', txText()],
       ['BUDGET TO CHARGE TO', v('budget')],
       ['NAMING', 'Please name the Promo Basket Analysis tool "' + v('naming') + '"'],
     ];
@@ -459,7 +491,7 @@
       'DEPARTMENT: ' + v('dept'),
       'COUPON: ' + v('coupon'),
       'DEAL: ' + dealText(),
-      'TRANSACTION LIMITS: ' + v('txLimits'),
+      'TRANSACTION LIMITS: ' + txText(),
       'BUDGET TO CHARGE TO: ' + v('budget'),
       'NAMING: Please name the Promo Basket Analysis tool "' + v('naming') + '"',
     ].join('\n');
@@ -473,13 +505,20 @@
   }
 
   function resetForm() {
-    ['promoType','buildType','stores','dept','deal','txLimits','budget'].forEach(id => {
+    ['promoType','buildType','stores','dept','deal','budget'].forEach(id => {
       document.getElementById(id).selectedIndex = 0;
     });
     ['dateStart','dateEnd','coupon','promoCode','naming'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.getElementById('couponPresent').checked = true;
+    document.getElementById('tx1').checked = true;
+    document.getElementById('tx2').checked = true;
+    document.getElementById('tx3').checked = false;
+    document.getElementById('tx4').checked = false;
+    document.getElementById('tx5').checked = false;
+    document.getElementById('tx6').checked = false;
+    document.getElementById('txTotal').selectedIndex = 0;
     namingEdited = false;
     update();
   }
